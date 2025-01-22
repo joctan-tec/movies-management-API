@@ -8,14 +8,12 @@ const uri =  process.env.bdUri;
 
 const dbName = process.env.bdName; // Nombre de la base de datos
 
-console.log('soy '+uri);
-console.log('bd '+dbName);
+
 const client = new MongoClient(uri);
 
 async function runDatabaseOperation(callback) {
   try {
     await client.connect();
-    console.log('Conexión exitosa a la base de datos');
     const db = client.db(`${dbName}`); // Seleccionar la base de datos 
     await callback(db); // Ejecutar el callback pasando el objeto de base de datos
   } catch (error) {

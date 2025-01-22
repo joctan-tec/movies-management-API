@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
+const actorRoutes = require('./actor.routes'); 
+
+// Rutas generales o de la API
+router.use('/actors', actorRoutes); 
+
 // Ejemplo de una ruta básica
 router.get('/', async (req, res) => {
   try {
     // Conectar a la base de datos
-    
-
     // Respuesta al cliente una vez se haya completado la operación de conexión
     res.send('¡Bienvenido a la API de gestión de películas!');
   } catch (error) {
