@@ -2,14 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const authRoutes = require('./auth.routes');
-
-router.use('/auth', authRoutes);
-
-
 const actorRoutes = require('./actor.routes'); 
 
 // Rutas generales o de la API
 router.use('/actors', actorRoutes); 
+router.use('/auth', authRoutes);
 
 // Ejemplo de una ruta básica
 router.get('/', async (req, res) => {
