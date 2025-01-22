@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const routes = require('./routes');
 const app = express();
 
+
 // Middlewares globales
 app.use(express.json());
 app.use(cors());
