@@ -3,6 +3,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const routes = require('./routes');
 const app = express();
+require('dotenv').config();
+
 
 // Middlewares globales
 app.use(express.json());
