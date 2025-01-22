@@ -1,28 +1,35 @@
-const { insertActor } = require('../models/actor');
+// controllers/actor.controller.js
+const runDatabaseOperation = require('../BD/dbconnection'); // Importar la función de conexión
 
-const createActor = async (req, res) => {
-  const { nombre, edad, peliculas } = req.body;
-
-  if (!nombre || !edad) {
-    return res.status(400).send("Faltan datos obligatorios");
-  }
+// Función para agregar un actor
+async function addActor(req, res) {
+  const { nombre, edad, peliculas, fechaDeNacimiento } = req.body;
 
   const actorData = {
     nombre,
     edad,
-    peliculas: peliculas || [],
-    creadoEn: new Date(),
+    peliculas,
+    fechaDeNacimiento,
   };
 
   try {
-    await insertActor(actorData);
-    res.status(201).send("Actor creado exitosamente");
+    // Ejecutar la operación para insertar el actor en la base de datos
+    await runDatabaseOperation(async (db) => {
+      const collection = db.collection('actors');
+      const result = await collection.insertOne(actorData);
+      
+      // Responder con el resultado
+      res.status(201).json({
+        message: 'Actor agregado exitosamente',
+        actorId: result.insertedId
+      });
+    });
   } catch (error) {
-    console.error("Error al crear el actor:", error);
-    res.status(500).send("Error interno del servidor");
+    res.status(500).json({
+      message: 'Error al agregar actor',
+      error: error.message
+    });
   }
-};
+}
 
-module.exports = {
-  createActor,
-};
+module.exports = { addActor };
