@@ -6,6 +6,7 @@ const app = express();
 require('dotenv').config();
 
 
+
 // Middlewares globales
 app.use(express.json());
 app.use(cors());
