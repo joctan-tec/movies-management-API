@@ -54,7 +54,73 @@ async function getAllActors(req, res) {
     }
   }
 
-  //Todo hacer borrado lógico
+  async function getActorByName(req, res) {
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection("actors"); // Referencia a la colección de actores
+        const actor = await collection.findOne({ nombre: actorName }); // Obtener todos los actores de la colección
+  
+        res.status(200).json({
+          message: 'Actor obtenidos exitosamente',
+          actor: actor, // Devolvemos todos los actores como un array
+        });
+      });
+    } catch (error) {
+      // Si ocurre un error durante la operación, lo capturamos y respondemos con un mensaje
+      res.status(500).json({
+        message: 'Error al obtener actores',
+        error: error.message,
+      });
+    }
+  }
+
+  async function addImageToActor(req, res) {
+    const actorName = req.params.name; // El nombre del actor
+    const newImage = req.body; // La nueva imagen enviada en el body
+  
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection("actors");
+        const result = await collection.updateOne(
+          { nombre: actorName }, // Condición de búsqueda
+          { $push: { imagenes: newImage } } // Agregar al array 'imagenes'
+        );
+  
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ message: "Actor no encontrado" });
+        }
+  
+        res.status(200).json({ message: "Imagen agregada con éxito", result });
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error al agregar la imagen", error });
+    }
+  }
+
+  async function addMovieToActor(req, res) {
+    const actorName = req.params.name; // El nombre del actor
+    const newPelicula = req.body; // La nueva pelicula enviada en el body
+  
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection("actors");
+        const result = await collection.updateOne(
+          { nombre: actorName }, // Condición de búsqueda
+          { $push: { peliculas: newPelicula } } // Agregar al array 'peliculas'
+        );
+  
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ message: "Actor no encontrado" });
+        }
+  
+        res.status(200).json({ message: "Pelicula agregada con éxito", result });
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error al agregar la pelicula", error });
+    }
+  }
+  
+
   async function editActor(req, res) {
     const actorName = req.body.nombre; // body si recibe json, params si es en la url
     const updatedData = req.body;  // Nuevos datos del actor
@@ -100,4 +166,4 @@ async function getAllActors(req, res) {
         res.status(200).json({ message: 'Actor eliminado lógicamente', actor });
     });
   }
-module.exports = { getAllActors, addActor, editActor, softDeleteActor };
+module.exports = { getAllActors, getActorByName, addActor, addImageToActor, addMovieToActor, editActor, softDeleteActor };
