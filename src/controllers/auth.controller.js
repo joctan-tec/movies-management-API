@@ -1,35 +1,59 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const { loginAuthUser, getUserData } = require('../services/user.service');
+require('dotenv').config();
 
-// Simulación de una base de datos de usuarios
-const users = [
-    { id: 1, username: 'admin', password: bcrypt.hashSync('123456', 8) }
-];
+
+
+
 
 // Login: Generar un token para un usuario
-const login = (req, res) => {
-    const { username, password } = req.body;
+exports.login = async (req, res) => {
+    const { email, password } = req.body;
 
-    const user = users.find(u => u.username === username);
+    if (!email || !password) {
+        return res.status(400).json({ message: 'El email y la contraseña son requeridos' });
+    }
+
+    const user = await loginAuthUser(email, password);
+
     if (!user) {
-        return res.status(404).json({ message: 'Usuario no encontrado' });
+        return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
     }
 
-    const passwordIsValid = bcrypt.compareSync(password, user.password);
-    if (!passwordIsValid) {
-        return res.status(401).json({ message: 'Contraseña incorrecta' });
+    const userData = await getUserData(user.uid);
+
+    console.log("USER DATA: ", userData);
+
+    if (!userData) {
+        return res.status(401).json({ message: 'Error al obtener los datos del usuario' });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN // Tiempo de expiración del token
+    // Crear un token con la información del usuario
+    const expiresIn = parseInt(process.env.JWT_EXPIRES_IN, 10); // Convertir a número
+
+    const token = jwt.sign(
+        { id: userData.id, username: userData.userName, email: userData.email, role: userData.role, picture: userData.pictureLink[0] },
+        process.env.JWT_SECRET,
+        { expiresIn: expiresIn } // Duración en segundos
+    );
+    
+    // Configurar la cookie con la misma duración que el token
+    res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+        sameSite: 'strict',
+        maxAge: parseInt(process.env.COOKIE_MAX_AGE, 10), // Duración en milisegundos
     });
 
-    res.json({ message: 'Login exitoso', token });
+    // Responder al cliente
+    res.status(200).json({ message: 'Inicio de sesión exitoso' });
 };
 
-// Ejemplo de una ruta protegida
-const protectedRoute = (req, res) => {
-    res.json({ message: `Hola, ${req.user.username}. Esta es una ruta protegida.` });
-};
 
-module.exports = { login, protectedRoute };
+exports.getUserInfo = (req, res) => {
+    // Usa la información ya decodificada del token en `req.user`
+    const { username, email, role, picture } = req.user;
+
+    // Responde con los datos necesarios
+    res.status(200).json({ username, email, role, picture });
+};

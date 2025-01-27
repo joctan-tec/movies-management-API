@@ -3,10 +3,15 @@ const router = express.Router();
 
 const authRoutes = require('./auth.routes');
 const actorRoutes = require('./actor.routes'); 
+const userRoutes = require('./user.routes');
+const imageRoutes = require('./img.routes');
 
 // Rutas generales o de la API
 router.use('/actors', actorRoutes); 
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/images', imageRoutes);
+
 
 // Ejemplo de una ruta básica
 router.get('/', async (req, res) => {

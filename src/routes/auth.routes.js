@@ -1,13 +1,16 @@
 const express = require('express');
-const { login, protectedRoute } = require('../controllers/auth.controller');
+const { login, getUserInfo } = require('../controllers/auth.controller');
 const verifyToken = require('../middlewares/auth.middleware');
+
+const multer = require('multer');
+const upload = multer();
+
+
 
 const router = express.Router();
 
-// Ruta para iniciar sesión
-router.post('/login', login);
+router.post('/login', upload.none(), login);
+router.get('/getUserInfo', verifyToken, getUserInfo); // Aplica el middleware
 
-// Ruta protegida (requiere un token válido)
-router.get('/protected', verifyToken, protectedRoute);
 
 module.exports = router;

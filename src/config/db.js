@@ -1,20 +1,26 @@
-//TODO Here we are using the environment variables to get the database connection details.
-
-//Envs
+// Cargar las variables de entorno desde el archivo .env
 require('dotenv').config();
 
-// Config Firebase
-const dbConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    databaseURL: process.env.FIREBASE_DB_URL,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MSG_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-}
+// Importar el módulo de Firebase
+const { initializeApp } = require('firebase/app');
 
-// Initialize Firebase
-const db = initializeApp(firebaseConfig);
 
-module.exports = db;
+
+// Configuración de Firebase utilizando las variables de entorno
+const firebaseConfig = {
+  apiKey: process.env.apiKey,
+  authDomain: process.env.authDomain,
+  databaseURL: process.env.databaseURL,
+  projectId: process.env.projectId,
+  storageBucket: process.env.storageBucket,
+  messagingSenderId: process.env.messagingSenderId,
+  appId: process.env.appId,
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+
+
+
+// Exportar las instancias de Firestore, Auth y Storage
+module.exports = { app };
