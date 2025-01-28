@@ -1,6 +1,7 @@
 // controllers/actor.controller.js
 const runDatabaseOperation = require('../BD/dbconnection'); // Importar la función de conexión
 
+
 // Función para agregar un actor
 async function addActor(req, res) {
   const { nombre, biografia, peliculas, fechaDeNacimiento, imagenes } = req.body;
@@ -38,7 +39,7 @@ async function getAllActors(req, res) {
     try {
       await runDatabaseOperation(async (db) => {
         const collection = db.collection("actors"); // Referencia a la colección de actores
-        const actors = await collection.find().project({ _id: 0 }).toArray(); // Obtener todos los actores de la colección
+        const actors = await collection.find({ activo: true }).project({ _id: 0 }).toArray(); // Obtener todos los actores de la colección
   
         res.status(200).json({
           message: 'Actores obtenidos exitosamente',
@@ -60,7 +61,7 @@ async function getAllActors(req, res) {
     try {
       await runDatabaseOperation(async (db) => {
         const collection = db.collection("actors"); // Referencia a la colección de actores
-        const actor = await collection.findOne({ nombre: actorName },{ projection: { _id: 0 }});
+        const actor = await collection.findOne({ nombre: actorName,activo:true },{ projection: { _id: 0 }});
         if (!actor) {return res.status(404).json({ message: 'No se encontró un actor con ese nombre' });}
         res.status(200).json({
           message: 'Actor obtenidos exitosamente',
@@ -166,15 +167,23 @@ async function getAllActors(req, res) {
 
     const actorName = req.body.nombre; // ID del actor que se va a "eliminar"
     await runDatabaseOperation(async (db) => {
-        const collection = db.collection("actors");
-        
-        const actor = await collection.findOne({ nombre: actorName },{ projection: { _id: 0 }});
-        if (!actor) {return res.status(404).json({ message: 'No se encontró un actor con ese nombre' });}
-  
-        actor.activo = false;  // Marcamos al actor como "eliminado"
-        await actor.save();  // Guardamos los cambios
-  
-        res.status(200).json({ message: 'Actor eliminado lógicamente', actor });
+      const collection = db.collection("actors");
+
+      // Buscar el actor con el filtro
+      const actor = await collection.findOne({ nombre: actorName, activo: true }, { projection: { _id: 0 } });
+      if (!actor) {
+        return res.status(404).json({ message: 'No se encontró un actor con ese nombre' });
+      }
+      
+      // Actualizar el campo activo a false
+      await collection.updateOne(
+        { nombre: actorName }, // Filtro para identificar el documento
+        { $set: { activo: false } } // Actualización del campo
+      );
+      
+      // Enviar la respuesta al cliente
+      res.status(200).json({ message: 'Actor eliminado lógicamente', actor });
+      
     });
   }
 module.exports = { getAllActors, getActorByName, addActor, addImageToActor, addMovieToActor, editActor, softDeleteActor };
