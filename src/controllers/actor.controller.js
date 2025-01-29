@@ -22,8 +22,7 @@ async function addActor(req, res) {
       
       // Responder con el resultado
       res.status(201).json({
-        message: 'Actor agregado exitosamente',
-        actorId: result.insertedId
+        message: 'Actor agregado exitosamente'
       });
     });
   } catch (error) {
@@ -78,7 +77,7 @@ async function getAllActors(req, res) {
   }
 
   async function addImageToActor(req, res) {
-    const actorName = req.params.name; // El nombre del actor
+    const actorName = req.params.nombre; // El nombre del actor
     const newImage = req.body; // La nueva imagen enviada en el body
   
     try {
@@ -98,30 +97,6 @@ async function getAllActors(req, res) {
       });
     } catch (error) {
       res.status(500).json({ message: "Error al agregar la imagen", error });
-    }
-  }
-
-  async function addMovieToActor(req, res) {
-    const actorName = req.params.name; // El nombre del actor
-    const newPelicula = req.body; // La nueva pelicula enviada en el body
-  
-    try {
-      await runDatabaseOperation(async (db) => {
-        const collection = db.collection("actors");
-        const result = await collection.updateOne(
-          { nombre: actorName }, // Condición de búsqueda
-          { $push: { peliculas: newPelicula } }, // Agregar al array 'peliculas'
-          { projection: { _id: 0 }}
-        );
-  
-        if (result.matchedCount === 0) {
-          return res.status(404).json({ message: "Actor no encontrado" });
-        }
-  
-        res.status(200).json({ message: "Pelicula agregada con éxito", result });
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Error al agregar la pelicula", error });
     }
   }
   
@@ -164,26 +139,36 @@ async function getAllActors(req, res) {
   
 
   async function softDeleteActor(req, res) {
-
-    const actorName = req.body.nombre; // ID del actor que se va a "eliminar"
+    const actorName = req.body.nombre; // Nombre del actor que se va a "eliminar"
+  
     await runDatabaseOperation(async (db) => {
-      const collection = db.collection("actors");
-
-      // Buscar el actor con el filtro
-      const actor = await collection.findOne({ nombre: actorName, activo: true }, { projection: { _id: 0 } });
+      const actorCollection = db.collection("actors");
+      const movieCollection = db.collection("movies");
+  
+      // Buscar el actor que queremos eliminar
+      const actor = await actorCollection.findOne({ nombre: actorName, activo: true });
       if (!actor) {
-        return res.status(404).json({ message: 'No se encontró un actor con ese nombre' });
+        return res.status(404).json({ message: "No se encontró un actor con ese nombre" });
       }
-      
-      // Actualizar el campo activo a false
-      await collection.updateOne(
-        { nombre: actorName }, // Filtro para identificar el documento
-        { $set: { activo: false } } // Actualización del campo
+  
+      // Marcar el actor como inactivo
+      await actorCollection.updateOne(
+        { nombre: actorName },
+        { $set: { activo: false } }
       );
-      
-      // Enviar la respuesta al cliente
-      res.status(200).json({ message: 'Actor eliminado lógicamente', actor });
-      
+  
+      // Eliminar al actor de las películas en las que aparece
+      await movieCollection.updateMany(
+        { actores: actorName }, // Buscar películas donde el actor aparece
+        { $pull: { actores: actorName } } // Eliminar el actor del array "actores"
+      );
+  
+      // Enviar respuesta al cliente
+      res.status(200).json({
+        message: "Actor eliminado lógicamente y eliminado de las películas",
+        actor,
+      });
     });
   }
-module.exports = { getAllActors, getActorByName, addActor, addImageToActor, addMovieToActor, editActor, softDeleteActor };
+  
+module.exports = { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor };
