@@ -159,9 +159,9 @@ async function getAllActors(req, res) {
   
       // Eliminar al actor de las películas en las que aparece
       await movieCollection.updateMany(
-        { actores: actorName }, // Buscar películas donde el actor aparece
-        { $pull: { actores: actorName } } // Eliminar el actor del array "actores"
-      );
+        { reparto: { $in: [actorName] } }, // Buscar películas que contengan al actor en "reparto"
+        { $pull: { reparto: actorName } }  // Eliminar el actor del array "reparto"
+    );
   
       // Enviar respuesta al cliente
       res.status(200).json({
