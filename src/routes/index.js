@@ -5,12 +5,14 @@ const authRoutes = require('./auth.routes');
 const actorRoutes = require('./actor.routes'); 
 const userRoutes = require('./user.routes');
 const imageRoutes = require('./img.routes');
+const moviesRoutes = require('./movies.routes');
 
 // Rutas generales o de la API
 router.use('/actors', actorRoutes); 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/images', imageRoutes);
+router.use('/movies', moviesRoutes);
 
 
 // Ejemplo de una ruta básica
