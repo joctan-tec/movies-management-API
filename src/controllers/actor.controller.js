@@ -4,14 +4,15 @@ const runDatabaseOperation = require('../BD/dbconnection'); // Importar la funci
 
 // Función para agregar un actor
 async function addActor(req, res) {
-  const { nombre, biografia, peliculas, fechaDeNacimiento, imagenes } = req.body;
+  const { nombre, biografia, peliculas, fechaDeNacimiento, imagenes, activo } = req.body;
 
   const actorData = {
     nombre, //string
     biografia, //string
     peliculas, //string[]
     fechaDeNacimiento,  //date
-    imagenes//imgs[]
+    imagenes,//imgs[]
+    activo //true
   };
 
   try {
