@@ -1,5 +1,6 @@
 // controllers/actor.controller.js
 const runDatabaseOperation = require('../BD/dbconnection'); // Importar la función de conexión
+const serviceMovies = require('../services/movies.service');
 
 exports.getAllMovies = async (req, res) => {
     try {
@@ -103,4 +104,71 @@ exports.getTopRatedMovies = async (req, res) => {
             error: error.message,
         });
     }
+};
+
+exports.createMovie = async (req, res) => {
+    const movie = req.body;
+    const images = req.files;
+
+    // Transforma los campos ano_lanzamiento y calificacion a números
+    movie.ano_lanzamiento = parseInt(movie.ano_lanzamiento);
+    movie.calificacion = parseFloat(movie.calificacion);
+
+    try {
+        const response = await serviceMovies.createMovie(movie, images);
+        console.log(response);
+        if (response instanceof Error || !response.success) {
+            return res.status(500).json({
+                message: 'Error al crear la película',
+                error: response.message,
+            });
+        }
+
+        res.status(201).json({
+            message: 'Película creada exitosamente',
+            movie: response.movie,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error al crear la película',
+            error: error.message,
+        });
+    }
+};
+
+
+exports.updateMovie = async (req, res) => {
+    const movieName = req.params.name;
+    const updatedMovie = req.body;
+    const images = req.files;
+
+    // Transforma los campos ano_lanzamiento y calificacion a números
+    updatedMovie.ano_lanzamiento = parseInt(updatedMovie.ano_lanzamiento);
+    updatedMovie.calificacion = parseFloat(updatedMovie.calificacion);
+
+    try {
+        const response = await serviceMovies.updateMovie(movieName, updatedMovie, images);
+        console.log(response);
+        if (response instanceof Error || !response.success) {
+            return res.status(500).json({
+                message: 'Error al actualizar la pelicula',
+                error: response.message,
+            });
+        }
+
+        res.status(200).json({
+            message: 'Pelicula actualizada exitosamente',
+            movie: response,
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error al actualizar la pelicula',
+            error: error.message,
+        });
+        
+    }
+
+    
 };

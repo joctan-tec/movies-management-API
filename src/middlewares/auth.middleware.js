@@ -9,6 +9,8 @@ const verifyToken = async (req, res, next) => {
         token = req.cookies?.authToken; // Requiere cookie-parser configurado
     }
 
+    console.log('Token:', token);
+
     // Si no se encuentra en ninguna parte, devolver un error
     if (!token) {
         return res.status(403).json({ message: 'Token no proporcionado' });

@@ -12,7 +12,10 @@ app.use(cookieParser());
 
 // Middlewares globales
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:4200',  // Origen permitido (frontend)
+    credentials: true  // Permite enviar cookies
+  }));
 app.use(morgan('dev'));
 
 // Rutas
