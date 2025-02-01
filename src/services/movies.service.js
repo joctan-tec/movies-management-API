@@ -36,7 +36,11 @@ exports.createMovie = async (movie = {}, images = []) => {
             const movieData = {
                 ...movie,
                 imagenes: imageLinks,
+                reparto: [],
+                activo : true,
                 createdAt: new Date(),
+                
+
             };
 
             await moviesCollection.insertOne(movieData);
