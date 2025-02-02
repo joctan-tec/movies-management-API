@@ -104,3 +104,31 @@ exports.getTopRatedMovies = async (req, res) => {
         });
     }
 };
+
+exports.buscarPeliculas = async  (req, res) =>{
+    const { peliculas } = req.body;
+  
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection('movies');
+  
+  
+        const peliculasEncontradas = await collection.find({ titulo: { $in: peliculas } }).toArray();
+
+  
+        res.status(200).json({
+          message: peliculasEncontradas.length > 0 ? 'Películas encontradas' : 'No se encontraron películas',
+          peliculas: peliculasEncontradas
+        });
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error al buscar películas',
+        error: error.message
+      });
+    }
+  };
+  
+  
+  
+  

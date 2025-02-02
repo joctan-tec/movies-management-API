@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllMovies, getMovieByName, getMoviesWithPagination, getTopRatedMovies } = require('../controllers/movies.controller');
+const { getAllMovies, getMovieByName, getMoviesWithPagination, getTopRatedMovies, buscarPeliculas } = require('../controllers/movies.controller');
 
 const router = express.Router();
 const multer = require('multer');
@@ -9,6 +9,7 @@ router.get('/all', getAllMovies);
 router.get('/top-rated', getTopRatedMovies);
 router.get('/', getMoviesWithPagination);
 router.get('/:name', getMovieByName);
+router.post('/actorMovies',buscarPeliculas)
 
 
 

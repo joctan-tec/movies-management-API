@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor } = require('../controllers/actor.controller');
+const { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor, buscarActores } = require('../controllers/actor.controller');
 const router = express.Router();
 
 router.post('/create', addActor);  // Ruta para crear un actor
@@ -8,5 +8,6 @@ router.get('/', getAllActors);     // Ruta para obtener todos los actores
 router.get('/getOne/:name',getActorByName)
 router.put('/update', editActor);  //Ruta modificar toda info actor
 router.patch('/delete', softDeleteActor); // Ruta modifcar estado de actor@
+router.post('/movieActors', buscarActores)
 
 module.exports = router;
