@@ -12,15 +12,18 @@ const dbName = process.env.bdName; // Nombre de la base de datos
 const client = new MongoClient(uri);
 
 async function runDatabaseOperation(callback) {
+  let result;
   try {
     await client.connect();
-    const db = client.db(`${dbName}`); // Seleccionar la base de datos 
-    await callback(db); // Ejecutar el callback pasando el objeto de base de datos
+    const db = client.db(`${dbName}`); // Seleccionar la base de datos
+    result = await callback(db); // Ejecutar el callback y almacenar el resultado
   } catch (error) {
     console.error('Error en la operación de la base de datos:', error);
+    throw error; // Propagar el error para que el servicio lo maneje
   } finally {
     await client.close(); // Cerrar la conexión
   }
+  return result; // Devolver el resultado del callback
 }
 
 module.exports = runDatabaseOperation;
