@@ -1,6 +1,5 @@
 const express = require('express');
-const { getAllMovies, getMovieByName, getMoviesWithPagination, getTopRatedMovies, buscarPeliculas } = require('../controllers/movies.controller');
-const { getAllMovies, getMovieByName, getMoviesWithPagination, getTopRatedMovies, updateMovie, createMovie } = require('../controllers/movies.controller');
+const { getAllMovies, getMovieByName, getMoviesWithPagination, getTopRatedMovies, buscarPeliculas, updateMovie, createMovie } = require('../controllers/movies.controller');
 
 const router = express.Router();
 const multer = require('multer');
