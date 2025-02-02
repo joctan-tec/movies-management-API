@@ -40,8 +40,6 @@ exports.login = async (req, res) => {
     // Configurar la cookie con la misma duración que el token
     res.cookie('authToken', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-        sameSite: 'strict',
         maxAge: parseInt(process.env.COOKIE_MAX_AGE, 10), // Duración en milisegundos
     });
 
