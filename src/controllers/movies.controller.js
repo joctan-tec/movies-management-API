@@ -6,7 +6,7 @@ exports.getAllMovies = async (req, res) => {
     try {
         await runDatabaseOperation(async (db) => {
             const collection = db.collection('movies');
-            const movies = await collection.find({}, { projection: { _id: 0 } }).toArray();
+            const movies = await collection.find({ activo: true }, { projection: { _id: 0 } }).toArray();
 
             res.status(200).json({
                 message: 'Peliculas obtenidas exitosamente',
