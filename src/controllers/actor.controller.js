@@ -171,5 +171,29 @@ async function getAllActors(req, res) {
       });
     });
   }
+
+  async function buscarActores  (req, res) {
+    const { reparto } = req.body;
   
-module.exports = { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor };
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection('actors');
+  
+  
+        const peliculasEncontradas = await collection.find({ nombre: { $in: reparto } }).toArray();
+  
+  
+        res.status(200).json({
+          message: peliculasEncontradas.length > 0 ? 'Actores encontrados' : 'No se encontraron actores',
+          peliculas: peliculasEncontradas
+        });
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error al buscar actores',
+        error: error.message
+      });
+    }
+  };
+  
+module.exports = { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor, buscarActores };

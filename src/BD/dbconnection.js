@@ -23,6 +23,7 @@ async function connectDB() {
 }
 
 async function runDatabaseOperation(callback) {
+  let result;
   try {
     const db = await connectDB(); // Usa la conexión persistente
     return await callback(db);
@@ -30,6 +31,7 @@ async function runDatabaseOperation(callback) {
     console.error("Error en la operación de la base de datos:", error);
     throw error;
   }
+  return result; // Devolver el resultado del callback
 }
 
 module.exports = { runDatabaseOperation, connectDB };

@@ -32,7 +32,7 @@ exports.getAllMovies = async (req, res) => {
     try {
         await runDatabaseOperation(async (db) => {
             const collection = db.collection('movies');
-            const movies = await collection.find({}, { projection: { _id: 0 } }).toArray();
+            const movies = await collection.find({ activo: true }, { projection: { _id: 0 } }).toArray();
 
             res.status(200).json({
                 message: 'Peliculas obtenidas exitosamente',
@@ -166,6 +166,33 @@ exports.getMovieInfo = async (req, res) => {
 };
 
 
+exports.buscarPeliculas = async  (req, res) =>{
+    const { peliculas } = req.body;
+  
+    try {
+      await runDatabaseOperation(async (db) => {
+        const collection = db.collection('movies');
+  
+  
+        const peliculasEncontradas = await collection.find({ titulo: { $in: peliculas } }).toArray();
+
+  
+        res.status(200).json({
+          message: peliculasEncontradas.length > 0 ? 'Películas encontradas' : 'No se encontraron películas',
+          peliculas: peliculasEncontradas
+        });
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error al buscar películas',
+        error: error.message
+      });
+    }
+  };
+  
+  
+  
+  
 exports.createMovie = async (req, res) => {
     const movie = req.body;
     const images = req.files;
@@ -229,6 +256,37 @@ exports.updateMovie = async (req, res) => {
         });
         
     }
-
-    
 };
+
+exports.softDeleteMovie = async (req, res) => {
+    const movieName = req.body.nombre; // Nombre de la pelicula que se va a "eliminar"
+  
+    await runDatabaseOperation(async (db) => {
+      const actorCollection = db.collection("actors");
+      const movieCollection = db.collection("movies");
+  
+      // Buscar la pelicula que queremos eliminar
+      const movie = await movieCollection.findOne({ titulo: movieName, activo: true });
+      if (!movie) {
+        return res.status(404).json({ message: "No se encontró la pelicula con ese nombre" });
+      }
+  
+      // Marcar la pelicula como inactiva
+      await movieCollection.updateOne(
+        { titulo: movieName },
+        { $set: { activo: false } }
+      );
+  
+      // Eliminar la pelicula de los actores que son su reparto
+      await actorCollection.updateMany( //actorCollection
+        { peliculas: { $in: [movieName] } }, // Buscar actores que contengan a la pelicula en "peliculas"
+        { $pull: { peliculas: movieName } }  // Eliminar la pelicula del array "peliculas"
+    );
+  
+      // Enviar respuesta al cliente
+      res.status(200).json({
+        message: "Pelicula eliminada lógicamente y eliminado de los actores",
+        movie,
+      });
+    });
+  };
