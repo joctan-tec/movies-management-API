@@ -1,26 +1,35 @@
-// dbConnection.js
-require('dotenv').config(); // Importar dotenv para cargar las variables del .env
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-
-// URI de la base de datos y opciones
-const uri =  process.env.bdUri;
-
-const dbName = process.env.bdName; // Nombre de la base de datos
-
+const uri = process.env.bdUri;
+const dbName = process.env.bdName;
 
 const client = new MongoClient(uri);
 
+let db; // Variable global para reutilizar la conexión
+
+async function connectDB() {
+  if (!db) {
+    try {
+      await client.connect();
+      db = client.db(dbName);
+      console.log("Conectado a MongoDB");
+    } catch (error) {
+      console.error("Error conectando a MongoDB:", error);
+      throw error;
+    }
+  }
+  return db;
+}
+
 async function runDatabaseOperation(callback) {
   try {
-    await client.connect();
-    const db = client.db(`${dbName}`); // Seleccionar la base de datos 
-    await callback(db); // Ejecutar el callback pasando el objeto de base de datos
+    const db = await connectDB(); // Usa la conexión persistente
+    return await callback(db);
   } catch (error) {
-    console.error('Error en la operación de la base de datos:', error);
-  } finally {
-    await client.close(); // Cerrar la conexión
+    console.error("Error en la operación de la base de datos:", error);
+    throw error;
   }
 }
 
-module.exports = runDatabaseOperation;
+module.exports = { runDatabaseOperation, connectDB };

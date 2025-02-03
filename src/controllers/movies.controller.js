@@ -1,6 +1,32 @@
 // controllers/actor.controller.js
-const runDatabaseOperation = require('../BD/dbconnection'); // Importar la función de conexión
+const { runDatabaseOperation } = require('../BD/dbconnection'); // Importar la función de conexión
 const serviceMovies = require('../services/movies.service');
+
+exports.searchMovies = async (req, res) => {
+    try {
+        // 📥 Obtener filtros desde la URL (query params)
+        const { searchText, genre, ano_lanzamiento, calificacion, page, limit } = req.query;
+
+        // 🔢 Convertir valores numéricos
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+
+        // 🔄 Llamar al servicio con los filtros aplicados
+        const response = await serviceMovies.searchMovies(
+            searchText,
+            genre,
+            ano_lanzamiento,
+            calificacion,
+            pageNum,
+            limitNum
+        );
+
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 
 exports.getAllMovies = async (req, res) => {
     try {
@@ -105,6 +131,40 @@ exports.getTopRatedMovies = async (req, res) => {
         });
     }
 };
+
+exports.getMovieInfo = async (req, res) => {
+    try {
+        const response = await serviceMovies.getMovieInfo();
+
+        if (!response || typeof response !== 'object' || !('success' in response)) {
+            return res.status(500).json({
+                message: 'Error al obtener la información de las películas',
+                error: 'Respuesta inválida del servicio',
+            });
+        }
+
+        if (!response.success) {
+            return res.status(500).json({
+                message: 'Error al obtener la información de las películas',
+                error: response.message,
+            });
+        }
+
+        res.status(200).json({
+            message: 'Información de películas obtenida exitosamente',
+            años_lanzamiento: response.anos_lanzamiento,
+            generos: response.generos,
+            calificaciones: response.calificaciones,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error al obtener la información de las películas',
+            error: error.message,
+        });
+    }
+};
+
 
 exports.createMovie = async (req, res) => {
     const movie = req.body;
