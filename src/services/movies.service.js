@@ -19,7 +19,7 @@ exports.searchMovies = async (searchText, genreFilter, yearFilter, ratingFilter,
             }
 
             if (yearFilter && !isNaN(yearFilter)) {
-                matchStage.ano_lanzamiento = parseInt(yearFilter);
+                matchStage.ano_lanzamiento = {$gte: parseInt(yearFilter) };
             }
 
             if (ratingFilter && !isNaN(ratingFilter)) {

@@ -1,38 +1,73 @@
 // controllers/actor.controller.js
-const runDatabaseOperation = require('../BD/dbconnection'); // Importar la función de conexión
+const { runDatabaseOperation } = require('../BD/dbconnection'); // Importar la función de conexión
+const { uploadImgs } = require('./img.controller');
+require('dotenv').config();
 
 
 // Función para agregar un actor
 async function addActor(req, res) {
-  const { nombre, biografia, peliculas, fechaDeNacimiento, imagenes, activo } = req.body;
+  const { nombre, biografia, peliculas, fechaDeNacimiento, activo } = req.body;
+  const images = req.files;
 
-  const actorData = {
-    nombre, //string
-    biografia, //string
-    peliculas, //string[]
-    fechaDeNacimiento,  //date
-    imagenes,//imgs[]
-    activo //true
-  };
+  // Si peliculas o activo no viene, se les pone valor por defecto
+  const peliculasArray = peliculas || [];
+  const isActive = activo !== undefined ? activo : true;
+  
+  let imageLinks = [];
 
   try {
-    // Ejecutar la operación para insertar el actor en la base de datos
-    await runDatabaseOperation(async (db) => {
-      const collection = db.collection('actors');
-      const result = await collection.insertOne(actorData,{ projection: { _id: 0 }});
-      
-      // Responder con el resultado
-      res.status(201).json({
-        message: 'Actor agregado exitosamente'
+      // Manejo de subida de imágenes
+      if (images && images.length > 0) {
+          const folder = `public/images/actors`;
+          const results = await uploadImgs(images, folder);
+
+          if (results instanceof Error) {
+              throw new Error('Error al subir las imágenes');
+          }
+
+          const imagesPrefix = process.env.BUCKET_IMAGES_PREFIX;
+          results.forEach((result) => {
+              if (result.status === 'success') {
+                  imageLinks.push({
+                      url: `${imagesPrefix}${result.data.path}`,
+                      activo: true,
+                  });
+              }
+          });
+      }
+
+      // Crear un objeto con los datos del actor
+      const actorData = {
+          nombre,
+          biografia,
+          peliculas: peliculasArray,
+          fechaDeNacimiento,
+          imagenes: imageLinks,
+          activo: isActive,
+          createdAt: new Date(),
+      };
+
+      // Ejecutar la operación para insertar el actor en la base de datos
+      await runDatabaseOperation(async (db) => {
+          const collection = db.collection('actors');
+          await collection.insertOne(actorData);
       });
-    });
+
+      // Responder con éxito
+      res.status(201).json({
+          success: true,
+          message: 'Actor agregado exitosamente',
+          actor: actorData,
+      });
   } catch (error) {
-    res.status(500).json({
-      message: 'Error al agregar actor',
-      error: error.message
-    });
+      res.status(500).json({
+          success: false,
+          message: 'Error al agregar actor',
+          error: error.message,
+      });
   }
 }
+
 
 
 async function getAllActors(req, res) {
@@ -103,7 +138,7 @@ async function getAllActors(req, res) {
   
 
   async function editActor(req, res) {
-    const actorName = req.body.nombre; 
+    const actorName = req.params.name; // Nombre del actor a editar
     const updatedData = req.body;  // Nuevos datos del actor
     try {
       await runDatabaseOperation(async (db) => {
