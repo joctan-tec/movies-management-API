@@ -3,6 +3,51 @@ const { runDatabaseOperation } = require('../BD/dbconnection'); // Importar la f
 const { uploadImgs } = require('./img.controller');
 require('dotenv').config();
 
+async function searchActors(req, res) {
+  const { searchText, page = 1, limit = 10 } = req.query;
+
+  // 🔢 Convertir valores numéricos
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 6
+  
+  return await runDatabaseOperation(async (db) => {
+      const actorsCollection = db.collection('actors');
+
+      let matchStage = {};
+      let sortStage = {};
+
+      if (searchText && searchText.trim() !== "") {
+          matchStage.$text = { $search: searchText };
+          sortStage = { score: { $meta: "textScore" } };
+      }
+
+      const totalDocuments = await actorsCollection.countDocuments(matchStage);
+
+      const aggregationPipeline = [
+          { $match: matchStage },
+          { $sort: sortStage },
+          { $skip: (pageNum - 1) * limitNum },
+          { $limit: limitNum },
+          { $project: { _id: 0,  } } 
+      ];
+
+      const result = await actorsCollection.aggregate(aggregationPipeline).toArray();
+
+      res.json({
+          success: true,
+          currentPage: page,
+          totalPages: Math.ceil(totalDocuments / limitNum),
+          totalResults: totalDocuments,
+          actors: result
+      });
+  }).catch(error => {
+      res.status(500).json({
+          success: false,
+          message: `Error en la operación de la base de datos: ${error.message}`
+      });
+  });
+}
+
 
 // Función para agregar un actor
 async function addActor(req, res) {
@@ -231,4 +276,4 @@ async function getAllActors(req, res) {
     }
   };
   
-module.exports = { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor, buscarActores };
+module.exports = { getAllActors, getActorByName, addActor, addImageToActor, editActor, softDeleteActor, buscarActores, searchActors };
